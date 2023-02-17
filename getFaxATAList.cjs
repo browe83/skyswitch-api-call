@@ -6,6 +6,8 @@ const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const username = process.env.SSUSERNAME;
 const password = process.env.PASSWORD;
+const accountID = process.env.ACCOUNT_ID;
+const scope = process.env.SCOPE;
 
 const options = {
   method: 'POST',
@@ -16,9 +18,12 @@ const options = {
     client_id: clientId,
     client_secret: clientSecret,
     username: username,
-    password: password
+    password: password,
+    scope: scope
   }
 };
+
+console.log("options:", options, "accountID:", accountID);
 
 axios
   .request(options)
@@ -26,10 +31,10 @@ axios
     console.log("token:", response.data.access_token);
     const token = response.data.access_token;
     sdk.auth(token);
-    sdk.getAccountsAccount_idFaxAtas({account_id: '20783'})
+    sdk.getAccountsAccount_idFaxAtas({account_id: accountID})
       .then(({ data }) => console.log(data))
       .catch(err => console.error(err));
-      }) 
+  }) 
   .catch(function (error) {
     console.error(error);
   });
