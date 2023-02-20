@@ -1,6 +1,7 @@
-const sdk = require('api')('@telco/v1.0#41q6o2rzldx8607a');
-const axios = require('axios');
 require("dotenv").config();
+
+let sdk = require('api')('@telco/v1.0#qcnrk1l07o6jm6');
+
 
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
@@ -10,32 +11,30 @@ const accountID = process.env.ACCOUNT_ID;
 const scope = process.env.SCOPE;
 
 const options = {
-  method: 'POST',
-  url: 'https://pbx.skyswitch.com/ns-api/oauth2/token/',
-  headers: {accept: 'application/json', 'content-type': 'application/json'},
-  data: {
     grant_type: 'password',
     client_id: clientId,
     client_secret: clientSecret,
     username: username,
     password: password,
     scope: scope
-  }
 };
 
-console.log("options:", options, "accountID:", accountID);
 
-axios
-  .request(options)
-  .then(function (response) {
-    console.log("token:", response.data.access_token);
+sdk.obtainAccessToken(options)
+  .then(function(response) {
     const token = response.data.access_token;
+    sdk = require('api')('@telco/v1.0#41q6o2rzldx8607a');
     sdk.auth(token);
     sdk.getAccountsAccount_idFaxAtas({account_id: accountID})
-      .then(({ data }) => console.log(data))
+      .then(function({ data }) {
+        console.log("# of Fax ATAs in SS:", data.length);
+        const macAddresses = data.map( data => data.mac_address);
+        console.log("mac Adresses:", macAddresses);
+        } 
+      )
       .catch(err => console.error(err));
-  }) 
-  .catch(function (error) {
-    console.error(error);
-  });
+    }  
+  )
+  .catch(err => console.error(err));
+
 
