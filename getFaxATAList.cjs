@@ -1,7 +1,7 @@
 require("dotenv").config();
 
-let sdk = require('api')('@telco/v1.0#qcnrk1l07o6jm6');
-
+const authSDK = require('api')('@telco/v1.0#qcnrk1l07o6jm6');
+const deviceSDK = require('api')('@telco/v1.0#41q6o2rzldx8607a');
 
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
@@ -19,22 +19,30 @@ const options = {
     scope: scope
 };
 
+const parseData = async (deviceDataArr) => {
+  const combinedDataArr = [];
+  for (deviceData of deviceDataArr) {
+    combinedDataArr.push(deviceData);
+    const isOnline = await deviceSDK.getAccountsAccount_idFaxAtasMac_addressStatus({account_id: accountID, mac_address: deviceData.mac_address});
+    const idx = combinedDataArr.length - 1;
+    combinedDataArr[idx].isOnline = isOnline.data.is_online;
+  };
+  return new Promise((resolve) => {
+    resolve(combinedDataArr);
+  })
+}
 
-sdk.obtainAccessToken(options)
-  .then(function(response) {
-    const token = response.data.access_token;
-    sdk = require('api')('@telco/v1.0#41q6o2rzldx8607a');
-    sdk.auth(token);
-    sdk.getAccountsAccount_idFaxAtas({account_id: accountID})
-      .then(function({ data }) {
-        console.log("# of Fax ATAs in SS:", data.length);
-        const macAddresses = data.map( data => data.mac_address);
-        console.log("mac Adresses:", macAddresses);
-        } 
-      )
-      .catch(err => console.error(err));
-    }  
-  )
-  .catch(err => console.error(err));
+const faxATAsOnline = async () => {
+  const response = await authSDK.obtainAccessToken(options);
+  const token = response.data.access_token;
+  deviceSDK.auth(token);
+  const data = await deviceSDK.getAccountsAccount_idFaxAtas({account_id: accountID});
+  const finalArr = await parseData(data.data);
+  console.log(finalArr);
+  }
+
+  faxATAsOnline();
+
+
 
 
